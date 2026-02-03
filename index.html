@@ -5,14 +5,13 @@
 <title>Scavenger Hunt</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&display=swap" rel="stylesheet">
 
 <style>
 *{box-sizing:border-box}
 body{
   margin:0;
-  min-height:100vh;
-  background:radial-gradient(circle at top,#203a43,#0f2027 70%);
+  background:radial-gradient(circle at top,#1e3c44,#0b1c22 70%);
   font-family:'Inter',sans-serif;
   color:#fff;
 }
@@ -27,30 +26,55 @@ body{
 }
 .hidden{display:none}
 
-/* WELCOME */
+/* ================= WELCOME ================= */
 #welcome{
-  flex-direction:column;
   text-align:center;
+}
+.welcome-inner{
+  width:100%;
+  max-width:520px;
+  margin:auto;
+  padding:0 12px;
 }
 .key{
   font-size:56px;
   margin-bottom:18px;
   animation:float 3s ease-in-out infinite;
 }
-h1{
-  font-size:clamp(34px,6vw,54px);
+#welcome h1{
+  font-size:clamp(30px,7vw,44px);
   font-weight:400;
+  line-height:1.25;
+  margin:0;
 }
-h1 span{font-weight:800}
+#welcome h1 span{
+  font-weight:800;
+}
 .subtitle{
+  margin-top:14px;
+  font-size:clamp(13px,3.5vw,16px);
+  line-height:1.5;
   opacity:.85;
-  margin-top:10px;
 }
 
-/* TERMINAL */
-#decrypting{
-  width:100%;
+/* TABLET */
+@media (min-width:768px){
+  .welcome-inner{max-width:760px}
+  #welcome h1{font-size:48px}
+  .subtitle{font-size:17px}
 }
+
+/* DESKTOP */
+@media (min-width:1200px){
+  .welcome-inner{max-width:1000px}
+  #welcome h1{font-size:58px}
+  .subtitle{
+    font-size:18px;
+    margin-top:18px;
+  }
+}
+
+/* ================= TERMINAL ================= */
 .terminal{
   background:rgba(0,0,0,.85);
   border-radius:16px;
@@ -63,9 +87,7 @@ h1 span{font-weight:800}
   font-size:clamp(14px,3vw,17px);
   box-shadow:0 0 30px rgba(0,255,213,.2);
 }
-.line{
-  margin-bottom:8px;
-}
+.line{margin-bottom:8px}
 .cursor{
   display:inline-block;
   width:8px;
@@ -75,38 +97,102 @@ h1 span{font-weight:800}
   animation:blink 1s infinite;
 }
 
-/* CONTENT */
+/* ================= MAIN CONTENT ================= */
 #content{
-  max-width:960px;
+  max-width:1100px;
   margin:auto;
-  padding:60px 20px;
-}
-.section{
-  background:rgba(0,0,0,.55);
-  border-radius:20px;
-  padding:28px;
-  margin-bottom:30px;
-}
-.section h2{
-  color:#00ffd5;
-  margin-top:0;
-}
-.section ul{
-  text-align:left;
-  line-height:1.8;
-}
-.prizes{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:20px;
-}
-.prize{
-  background:rgba(255,255,255,.06);
-  padding:20px;
-  border-radius:14px;
+  padding:70px 20px 90px;
 }
 
-/* ANIMATIONS */
+.hero{
+  text-align:center;
+  margin-bottom:70px;
+}
+.hero h1{
+  font-size:clamp(36px,7vw,60px);
+  font-weight:800;
+  white-space:nowrap;
+}
+
+.section{
+  margin-bottom:70px;
+  opacity:0;
+  transform:translateY(30px);
+  animation:reveal 1s ease forwards;
+}
+.section:nth-of-type(1){animation-delay:.6s}
+.section:nth-of-type(2){animation-delay:1.2s}
+.section:nth-of-type(3){animation-delay:1.8s}
+
+.section-title{
+  font-size:22px;
+  color:#00ffd5;
+  margin-bottom:22px;
+}
+
+.glass{
+  background:rgba(255,255,255,.06);
+  backdrop-filter:blur(10px);
+  border-radius:26px;
+  padding:34px;
+  box-shadow:0 0 30px rgba(0,0,0,.4);
+}
+
+/* PRIZES */
+.prizes{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  gap:24px;
+}
+.prize{
+  text-align:center;
+  padding:30px;
+  border-radius:22px;
+  background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(0,0,0,.6));
+}
+.prize span{
+  font-size:14px;
+  opacity:.85;
+}
+.gold{border:1px solid #d4af37}
+.silver{border:1px solid #c0c0c0}
+.bronze{border:1px solid #cd7f32}
+
+/* RULES */
+.rules{
+  list-style:none;
+  padding:0;
+  margin:0;
+}
+.rules li{
+  margin-bottom:14px;
+  padding-left:20px;
+  position:relative;
+}
+.rules li::before{
+  content:"—";
+  position:absolute;
+  left:0;
+  color:#00ffd5;
+}
+
+/* UPDATES */
+.updates{
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+.update{
+  padding-left:14px;
+  border-left:3px solid #00ffd5;
+}
+.update-time{
+  font-size:12px;
+  opacity:.6;
+  margin-bottom:4px;
+}
+
+/* ================= ANIMATIONS ================= */
 @keyframes float{
   0%,100%{transform:translateY(0)}
   50%{transform:translateY(-10px)}
@@ -115,6 +201,9 @@ h1 span{font-weight:800}
   0%,50%{opacity:1}
   51%,100%{opacity:0}
 }
+@keyframes reveal{
+  to{opacity:1;transform:none}
+}
 </style>
 </head>
 
@@ -122,9 +211,13 @@ h1 span{font-weight:800}
 
 <!-- WELCOME -->
 <div id="welcome" class="screen">
-  <div class="key">🗝️</div>
-  <h1>welcome <span>scavenger hunt</span></h1>
-  <div class="subtitle">Think. Search. Decode. The hunt begins soon.</div>
+  <div class="welcome-inner">
+    <div class="key">🗝️</div>
+    <h1>Welcome To Scavenger Hunt</h1>
+    <div class="subtitle">
+      Think. Search. Decode. The hunt begins soon.
+    </div>
+  </div>
 </div>
 
 <!-- TERMINAL -->
@@ -134,24 +227,62 @@ h1 span{font-weight:800}
 
 <!-- MAIN CONTENT -->
 <div id="content" class="hidden">
-  <div class="section">
-    <h2>📜 Rules</h2>
-    <ul>
-      <li>Each clue leads to the next</li>
-      <li>No sharing answers or hints</li>
-      <li>No automation or cheating</li>
-      <li>Think smart and play fair</li>
-    </ul>
+
+  <div class="hero">
+    <h1>Scavenger Hunt</h1>
   </div>
 
-  <div class="section">
-    <h2>🏆 Prize Pool</h2>
+  <!-- PRIZES -->
+  <section class="section">
+    <div class="section-title">🏆 Prize Pool</div>
     <div class="prizes">
-      <div class="prize">🎧 Spotify Premium — Free for 3 Months</div>
-      <div class="prize">▶️ YouTube Premium — Free for 2 Months</div>
-      <div class="prize">▶️ YouTube Premium — Free for 1 Month</div>
+      <div class="prize gold">
+        <h3>🥇 Winner</h3>
+        <p>🎧Spotify Premium</p>
+        <span>Free for 3 Months</span>
+      </div>
+      <div class="prize silver">
+        <h3>🥈 Runner Up</h3>
+        <p>🎬YouTube Premium</p>
+        <span>Free for 2 Months</span>
+      </div>
+      <div class="prize bronze">
+        <h3>🥉 Third Place</h3>
+        <p>🎬YouTube Premium</p>
+        <span>Free for 1 Month</span>
+      </div>
     </div>
-  </div>
+  </section>
+
+  <!-- RULES -->
+  <section class="section">
+    <div class="section-title">📜 Rules</div>
+    <div class="glass">
+      <ul class="rules">
+        <li>Each clue leads to the next</li>
+        <li>No sharing answers or hints</li>
+        <li>No automation or cheating</li>
+        <li>Use logic, patience, and creativity</li>
+        <li>Organizer’s decision is final</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- UPDATES -->
+  <section class="section">
+    <div class="section-title">📢 Updates</div>
+    <div class="glass updates">
+      <div class="update">
+        <div class="update-time">Just now</div>
+        The hunt is live. Stay alert.
+      </div>
+      <div class="update">
+        <div class="update-time">Soon</div>
+        First clue will be released shortly.
+      </div>
+    </div>
+  </section>
+
 </div>
 
 <script defer>
@@ -164,18 +295,16 @@ const lines = [
   "Connecting to server...",
   "Establishing secure channel...",
   "Syncing data...",
-  "Connection established."
+  "Connection established.✅"
 ];
 
 let index = 0;
 
 function typeLine(){
   if(index >= lines.length) return;
-
   const line = document.createElement("div");
   line.className = "line";
   terminal.appendChild(line);
-
   let char = 0;
   function typeChar(){
     if(char < lines[index].length){
@@ -183,9 +312,7 @@ function typeLine(){
       terminal.scrollTop = terminal.scrollHeight;
       setTimeout(typeChar, 35);
     }else{
-      const cursor = document.createElement("span");
-      cursor.className = "cursor";
-      line.appendChild(cursor);
+      line.innerHTML += "<span class='cursor'></span>";
       index++;
       setTimeout(typeLine, 500);
     }
@@ -203,7 +330,7 @@ setTimeout(()=>{
 setTimeout(()=>{
   decrypting.classList.add("hidden");
   content.classList.remove("hidden");
-},8000);
+},9000);
 </script>
 
 </body>
