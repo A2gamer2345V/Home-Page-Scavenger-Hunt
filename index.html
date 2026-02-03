@@ -12,78 +12,168 @@
 body{
   margin:0;
   min-height:100vh;
+  background:radial-gradient(circle at top,#203a43,#0f2027 65%);
+  font-family:'Inter',sans-serif;
+  color:#fff;
+  overflow-x:hidden;
+}
+
+/* SCREENS */
+.screen{
+  min-height:100vh;
   display:flex;
   justify-content:center;
   align-items:center;
-  background:radial-gradient(circle at top,#203a43,#0f2027 60%);
-  font-family:'Inter',sans-serif;
-  color:#fff;
-  overflow:hidden;
-}
-
-/* CENTER WRAPPER */
-.wrapper{
   text-align:center;
   padding:20px;
-  animation:fadeScale 1.2s ease forwards;
 }
 
-/* TITLE */
+.hidden{display:none}
+
+/* WELCOME */
+#welcome{
+  flex-direction:column;
+  animation:fadeIn 1.2s ease forwards;
+}
+.key{
+  font-size:52px;
+  margin-bottom:16px;
+  animation:float 3s ease-in-out infinite;
+}
 h1{
   font-size:clamp(32px,6vw,52px);
   font-weight:400;
-  letter-spacing:0.5px;
-  margin:0;
 }
-h1 span{
-  font-weight:800;
-}
-
-/* SUBTEXT */
-p{
-  margin-top:14px;
-  font-size:clamp(14px,2.5vw,18px);
-  opacity:0.85;
+h1 span{font-weight:800}
+.subtitle{
+  opacity:.8;
+  margin-top:8px;
 }
 
-/* KEY ICON */
-.key{
-  font-size:clamp(36px,7vw,56px);
-  margin-bottom:18px;
-  animation:float 3s ease-in-out infinite;
+/* DECRYPTING */
+#decrypting{
+  flex-direction:column;
+  font-size:clamp(18px,4vw,26px);
+  letter-spacing:2px;
+}
+.dots::after{
+  content:"";
+  animation:dots 1.5s infinite;
+}
+@keyframes dots{
+  0%{content:""}
+  33%{content:"."}
+  66%{content:".."}
+  100%{content:"..."}
+}
+
+/* MAIN CONTENT */
+#content{
+  padding:60px 20px;
+  max-width:900px;
+  margin:auto;
+  animation:fadeUp 1.2s ease forwards;
+}
+.section{
+  background:rgba(0,0,0,.55);
+  border-radius:18px;
+  padding:28px;
+  margin-bottom:30px;
+}
+.section h2{
+  margin-top:0;
+  font-weight:600;
+  color:#00ffd5;
+}
+.section ul{
+  text-align:left;
+  line-height:1.8;
+}
+
+/* PRIZES */
+.prizes{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:20px;
+}
+.prize{
+  background:rgba(255,255,255,.05);
+  padding:20px;
+  border-radius:14px;
 }
 
 /* ANIMATIONS */
-@keyframes fadeScale{
-  from{
-    opacity:0;
-    transform:scale(0.92);
-  }
-  to{
-    opacity:1;
-    transform:scale(1);
-  }
+@keyframes fadeIn{
+  from{opacity:0}
+  to{opacity:1}
 }
-
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(20px)}
+  to{opacity:1;transform:none}
+}
 @keyframes float{
   0%,100%{transform:translateY(0)}
   50%{transform:translateY(-10px)}
-}
-
-/* RESPONSIVE SAFE AREA */
-@media (max-height:500px){
-  .key{display:none}
 }
 </style>
 </head>
 
 <body>
 
-<div class="wrapper">
+<!-- WELCOME SCREEN -->
+<div id="welcome" class="screen">
   <div class="key">🗝️</div>
   <h1>welcome <span>scavenger hunt</span></h1>
-  <p>Think. Search. Decode. The hunt begins soon.</p>
+  <div class="subtitle">Think. Search. Decode. The hunt begins soon.</div>
 </div>
+
+<!-- DECRYPTING SCREEN -->
+<div id="decrypting" class="screen hidden">
+  Decrypting<span class="dots"></span>
+</div>
+
+<!-- MAIN CONTENT -->
+<div id="content" class="hidden">
+  <div class="section">
+    <h2>📜 Rules</h2>
+    <ul>
+      <li>Think creatively and logically</li>
+      <li>No sharing answers publicly</li>
+      <li>Each hint leads to the next</li>
+      <li>Play fair and enjoy the hunt</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>🏆 Prize Pool</h2>
+    <div class="prizes">
+      <div class="prize">🎧 Spotify Premium – 3 Months</div>
+      <div class="prize">▶️ YouTube Premium – 2 Months</div>
+      <div class="prize">🎁 Bonus Surprise Reward</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>🔍 About the Hunt</h2>
+    <p>
+      This scavenger hunt is designed to test your observation,
+      logic, and curiosity. Every clue hides in plain sight.
+    </p>
+  </div>
+</div>
+
+<script>
+/* SEQUENCE CONTROL */
+setTimeout(()=>{
+  document.getElementById("welcome").classList.add("hidden");
+  document.getElementById("decrypting").classList.remove("hidden");
+},2500);
+
+setTimeout(()=>{
+  document.getElementById("decrypting").classList.add("hidden");
+  document.getElementById("content").classList.remove("hidden");
+},4500);
+</script>
 
 </body>
 </html>
