@@ -12,13 +12,15 @@
 body{
   margin:0;
   min-height:100vh;
-  background:radial-gradient(circle at top,#203a43,#0f2027 65%);
+  background:
+    radial-gradient(circle at top,#2a4a52,#0f2027 65%);
   font-family:'Inter',sans-serif;
   color:#fff;
   overflow-x:hidden;
 }
 
-/* SCREENS */
+/* COMMON */
+.hidden{display:none}
 .screen{
   min-height:100vh;
   display:flex;
@@ -28,62 +30,56 @@ body{
   padding:20px;
 }
 
-.hidden{display:none}
-
 /* WELCOME */
 #welcome{
   flex-direction:column;
-  animation:fadeIn 1.2s ease forwards;
+  animation:fadeIn 1.4s ease forwards;
 }
 .key{
-  font-size:52px;
-  margin-bottom:16px;
+  font-size:56px;
+  margin-bottom:18px;
   animation:float 3s ease-in-out infinite;
 }
 h1{
-  font-size:clamp(32px,6vw,52px);
+  font-size:clamp(34px,6vw,54px);
   font-weight:400;
 }
 h1 span{font-weight:800}
 .subtitle{
-  opacity:.8;
-  margin-top:8px;
+  opacity:.85;
+  margin-top:10px;
 }
 
 /* DECRYPTING */
 #decrypting{
   flex-direction:column;
-  font-size:clamp(18px,4vw,26px);
+  font-size:clamp(20px,4vw,28px);
   letter-spacing:2px;
 }
-.dots::after{
-  content:"";
-  animation:dots 1.5s infinite;
-}
-@keyframes dots{
-  0%{content:""}
-  33%{content:"."}
-  66%{content:".."}
-  100%{content:"..."}
+#decryptText{
+  animation:glitch 1.2s infinite;
 }
 
-/* MAIN CONTENT */
+/* CONTENT */
 #content{
-  padding:60px 20px;
-  max-width:900px;
+  max-width:960px;
   margin:auto;
-  animation:fadeUp 1.2s ease forwards;
+  padding:60px 20px;
 }
 .section{
   background:rgba(0,0,0,.55);
-  border-radius:18px;
+  border-radius:20px;
   padding:28px;
   margin-bottom:30px;
+  animation:fadeUp .9s ease forwards;
+}
+.section:hover{
+  box-shadow:0 0 25px rgba(0,255,213,.15);
 }
 .section h2{
   margin-top:0;
-  font-weight:600;
   color:#00ffd5;
+  font-weight:600;
 }
 .section ul{
   text-align:left;
@@ -97,9 +93,13 @@ h1 span{font-weight:800}
   gap:20px;
 }
 .prize{
-  background:rgba(255,255,255,.05);
+  background:rgba(255,255,255,.06);
   padding:20px;
   border-radius:14px;
+  transition:.3s;
+}
+.prize:hover{
+  transform:translateY(-4px);
 }
 
 /* ANIMATIONS */
@@ -115,25 +115,39 @@ h1 span{font-weight:800}
   0%,100%{transform:translateY(0)}
   50%{transform:translateY(-10px)}
 }
+@keyframes glitch{
+  0%{text-shadow:0 0 2px #00ffd5}
+  50%{text-shadow:2px 0 #00ffd5,-2px 0 #00aaff}
+  100%{text-shadow:0 0 2px #00ffd5}
+}
 </style>
 </head>
 
 <body>
 
-<!-- WELCOME SCREEN -->
+<!-- WELCOME -->
 <div id="welcome" class="screen">
   <div class="key">🗝️</div>
   <h1>welcome <span>scavenger hunt</span></h1>
   <div class="subtitle">Think. Search. Decode. The hunt begins soon.</div>
 </div>
 
-<!-- DECRYPTING SCREEN -->
+<!-- DECRYPTING -->
 <div id="decrypting" class="screen hidden">
-  Decrypting<span class="dots"></span>
+  <div id="decryptText"></div>
 </div>
 
 <!-- MAIN CONTENT -->
 <div id="content" class="hidden">
+
+  <div class="section">
+    <h2>📢 Updates</h2>
+    <p>
+      New clues and announcements will appear here.
+      Keep checking this section for the latest updates.
+    </p>
+  </div>
+
   <div class="section">
     <h2>📜 Rules</h2>
     <ul>
@@ -149,30 +163,35 @@ h1 span{font-weight:800}
     <div class="prizes">
       <div class="prize">🎧 Spotify Premium – 3 Months</div>
       <div class="prize">▶️ YouTube Premium – 2 Months</div>
-      <div class="prize">🎁 Bonus Surprise Reward</div>
+      <div class="prize">🎁 Mystery Bonus Reward</div>
     </div>
   </div>
 
-  <div class="section">
-    <h2>🔍 About the Hunt</h2>
-    <p>
-      This scavenger hunt is designed to test your observation,
-      logic, and curiosity. Every clue hides in plain sight.
-    </p>
-  </div>
 </div>
 
 <script>
-/* SEQUENCE CONTROL */
+/* SEQUENCE */
+const decryptText = "Decrypting access";
+let i = 0;
+
+function typeDecrypt(){
+  if(i < decryptText.length){
+    document.getElementById("decryptText").textContent += decryptText.charAt(i);
+    i++;
+    setTimeout(typeDecrypt,80);
+  }
+}
+
 setTimeout(()=>{
   document.getElementById("welcome").classList.add("hidden");
   document.getElementById("decrypting").classList.remove("hidden");
+  typeDecrypt();
 },2500);
 
 setTimeout(()=>{
   document.getElementById("decrypting").classList.add("hidden");
   document.getElementById("content").classList.remove("hidden");
-},4500);
+},5200);
 </script>
 
 </body>
