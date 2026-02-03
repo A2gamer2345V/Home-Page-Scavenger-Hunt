@@ -1,75 +1,42 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>Scavenger Hunt</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>Homepage Test</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-
-<style>
-body{
-  margin:0;
-  height:100vh;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-  font-family:'Inter',sans-serif;
-  color:#fff;
-}
-
-.hidden{display:none}
-
-.container{
-  text-align:center;
-  max-width:600px;
-  width:90%;
-}
-
-h1{
-  font-size:38px;
-  font-weight:500;
-}
-h1 span{
-  font-weight:500;
-}
-
-button{
-  margin-top:30px;
-  padding:14px 36px;
-  font-size:16px;
-  border:none;
-  border-radius:30px;
-  background:#00c6ff;
-  color:#000;
-  cursor:pointer;
-}
-
-.card{
-  margin-top:30px;
-  padding:24px;
-  border-radius:18px;
-  background:rgba(0,0,0,0.55);
-}
-</style>
+  <style>
+    body{
+      margin:0;
+      height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      background:#111;
+      color:#fff;
+      font-family:Arial, sans-serif;
+      text-align:center;
+    }
+    button{
+      padding:14px 30px;
+      font-size:16px;
+      border:none;
+      border-radius:25px;
+      cursor:pointer;
+    }
+  </style>
 </head>
 
 <body>
 
-<!-- LOGIN SCREEN -->
-<div id="loginScreen" class="container">
-  <h1>welcome <span>scavenger hunt</span></h1>
-  <button id="loginBtn">Continue with Google</button>
+<div id="loggedOut">
+  <h2>Homepage Test</h2>
+  <button id="loginBtn">Login with Google</button>
 </div>
 
-<!-- AFTER LOGIN -->
-<div id="homeScreen" class="container hidden">
-  <h1 id="welcomeUser"></h1>
-  <div class="card">
-    <p>You are now logged in.</p>
-    <p>All next content will load from Firebase.</p>
-  </div>
+<div id="loggedIn" style="display:none">
+  <h2 id="userText"></h2>
+  <p>Firebase write completed.</p>
 </div>
 
 <!-- Firebase SDKs -->
@@ -89,29 +56,26 @@ const auth = firebase.auth();
 const db = firebase.database();
 const provider = new firebase.auth.GoogleAuthProvider();
 
-const loginScreen = document.getElementById("loginScreen");
-const homeScreen = document.getElementById("homeScreen");
-const welcomeUser = document.getElementById("welcomeUser");
-
 document.getElementById("loginBtn").onclick = () => {
   auth.signInWithRedirect(provider);
 };
 
-/* HANDLE LOGIN STATE */
+/* AUTH STATE LISTENER */
 auth.onAuthStateChanged(async (user)=>{
-  if(user){
-    // save / update user (NO duplicates)
-    await db.ref("participants/"+user.uid).set({
-      name:user.displayName,
-      email:user.email,
-      lastLogin:new Date().toISOString()
-    });
+  if(!user) return;
 
-    // switch UI
-    loginScreen.classList.add("hidden");
-    homeScreen.classList.remove("hidden");
-    welcomeUser.innerText = `Welcome, ${user.displayName}`;
-  }
+  // WRITE USER DATA
+  await db.ref("participants/" + user.uid).set({
+    name: user.displayName,
+    email: user.email,
+    lastLogin: new Date().toISOString()
+  });
+
+  // UPDATE UI
+  document.getElementById("loggedOut").style.display="none";
+  document.getElementById("loggedIn").style.display="block";
+  document.getElementById("userText").innerText =
+    "Logged in as " + user.displayName;
 });
 </script>
 
