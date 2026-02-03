@@ -12,28 +12,25 @@
 body{
   margin:0;
   min-height:100vh;
-  background:
-    radial-gradient(circle at top,#2a4a52,#0f2027 65%);
+  background:radial-gradient(circle at top,#203a43,#0f2027 70%);
   font-family:'Inter',sans-serif;
   color:#fff;
-  overflow-x:hidden;
 }
 
 /* COMMON */
-.hidden{display:none}
 .screen{
   min-height:100vh;
   display:flex;
   justify-content:center;
   align-items:center;
-  text-align:center;
   padding:20px;
 }
+.hidden{display:none}
 
 /* WELCOME */
 #welcome{
   flex-direction:column;
-  animation:fadeIn 1.4s ease forwards;
+  text-align:center;
 }
 .key{
   font-size:56px;
@@ -50,14 +47,32 @@ h1 span{font-weight:800}
   margin-top:10px;
 }
 
-/* DECRYPTING */
+/* TERMINAL */
 #decrypting{
-  flex-direction:column;
-  font-size:clamp(20px,4vw,28px);
-  letter-spacing:2px;
+  width:100%;
 }
-#decryptText{
-  animation:glitch 1.2s infinite;
+.terminal{
+  background:rgba(0,0,0,.85);
+  border-radius:16px;
+  padding:22px;
+  width:100%;
+  max-width:640px;
+  height:180px;
+  overflow-y:auto;
+  font-family:monospace;
+  font-size:clamp(14px,3vw,17px);
+  box-shadow:0 0 30px rgba(0,255,213,.2);
+}
+.line{
+  margin-bottom:8px;
+}
+.cursor{
+  display:inline-block;
+  width:8px;
+  height:16px;
+  background:#00ffd5;
+  margin-left:4px;
+  animation:blink 1s infinite;
 }
 
 /* CONTENT */
@@ -71,22 +86,15 @@ h1 span{font-weight:800}
   border-radius:20px;
   padding:28px;
   margin-bottom:30px;
-  animation:fadeUp .9s ease forwards;
-}
-.section:hover{
-  box-shadow:0 0 25px rgba(0,255,213,.15);
 }
 .section h2{
-  margin-top:0;
   color:#00ffd5;
-  font-weight:600;
+  margin-top:0;
 }
 .section ul{
   text-align:left;
   line-height:1.8;
 }
-
-/* PRIZES */
 .prizes{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
@@ -96,29 +104,16 @@ h1 span{font-weight:800}
   background:rgba(255,255,255,.06);
   padding:20px;
   border-radius:14px;
-  transition:.3s;
-}
-.prize:hover{
-  transform:translateY(-4px);
 }
 
 /* ANIMATIONS */
-@keyframes fadeIn{
-  from{opacity:0}
-  to{opacity:1}
-}
-@keyframes fadeUp{
-  from{opacity:0;transform:translateY(20px)}
-  to{opacity:1;transform:none}
-}
 @keyframes float{
   0%,100%{transform:translateY(0)}
   50%{transform:translateY(-10px)}
 }
-@keyframes glitch{
-  0%{text-shadow:0 0 2px #00ffd5}
-  50%{text-shadow:2px 0 #00ffd5,-2px 0 #00aaff}
-  100%{text-shadow:0 0 2px #00ffd5}
+@keyframes blink{
+  0%,50%{opacity:1}
+  51%,100%{opacity:0}
 }
 </style>
 </head>
@@ -132,66 +127,83 @@ h1 span{font-weight:800}
   <div class="subtitle">Think. Search. Decode. The hunt begins soon.</div>
 </div>
 
-<!-- DECRYPTING -->
+<!-- TERMINAL -->
 <div id="decrypting" class="screen hidden">
-  <div id="decryptText"></div>
+  <div class="terminal" id="terminal"></div>
 </div>
 
 <!-- MAIN CONTENT -->
 <div id="content" class="hidden">
-
-  <div class="section">
-    <h2>📢 Updates</h2>
-    <p>
-      New clues and announcements will appear here.
-      Keep checking this section for the latest updates.
-    </p>
-  </div>
-
   <div class="section">
     <h2>📜 Rules</h2>
     <ul>
-      <li>Think creatively and logically</li>
-      <li>No sharing answers publicly</li>
-      <li>Each hint leads to the next</li>
-      <li>Play fair and enjoy the hunt</li>
+      <li>Each clue leads to the next</li>
+      <li>No sharing answers or hints</li>
+      <li>No automation or cheating</li>
+      <li>Think smart and play fair</li>
     </ul>
   </div>
 
   <div class="section">
     <h2>🏆 Prize Pool</h2>
     <div class="prizes">
-      <div class="prize">🎧 Spotify Premium – 3 Months</div>
-      <div class="prize">▶️ YouTube Premium – 2 Months</div>
-      <div class="prize">🎁 Mystery Bonus Reward</div>
+      <div class="prize">🎧 Spotify Premium — Free for 3 Months</div>
+      <div class="prize">▶️ YouTube Premium — Free for 2 Months</div>
+      <div class="prize">▶️ YouTube Premium — Free for 1 Month</div>
     </div>
   </div>
-
 </div>
 
-<script>
-/* SEQUENCE */
-const decryptText = "Decrypting access";
-let i = 0;
+<script defer>
+const welcome = document.getElementById("welcome");
+const decrypting = document.getElementById("decrypting");
+const terminal = document.getElementById("terminal");
+const content = document.getElementById("content");
 
-function typeDecrypt(){
-  if(i < decryptText.length){
-    document.getElementById("decryptText").textContent += decryptText.charAt(i);
-    i++;
-    setTimeout(typeDecrypt,80);
+const lines = [
+  "Connecting to server...",
+  "Establishing secure channel...",
+  "Syncing data...",
+  "Connection established."
+];
+
+let index = 0;
+
+function typeLine(){
+  if(index >= lines.length) return;
+
+  const line = document.createElement("div");
+  line.className = "line";
+  terminal.appendChild(line);
+
+  let char = 0;
+  function typeChar(){
+    if(char < lines[index].length){
+      line.textContent += lines[index][char++];
+      terminal.scrollTop = terminal.scrollHeight;
+      setTimeout(typeChar, 35);
+    }else{
+      const cursor = document.createElement("span");
+      cursor.className = "cursor";
+      line.appendChild(cursor);
+      index++;
+      setTimeout(typeLine, 500);
+    }
   }
+  typeChar();
 }
 
+/* FLOW */
 setTimeout(()=>{
-  document.getElementById("welcome").classList.add("hidden");
-  document.getElementById("decrypting").classList.remove("hidden");
-  typeDecrypt();
-},2500);
+  welcome.classList.add("hidden");
+  decrypting.classList.remove("hidden");
+  typeLine();
+},3000);
 
 setTimeout(()=>{
-  document.getElementById("decrypting").classList.add("hidden");
-  document.getElementById("content").classList.remove("hidden");
-},5200);
+  decrypting.classList.add("hidden");
+  content.classList.remove("hidden");
+},8000);
 </script>
 
 </body>
