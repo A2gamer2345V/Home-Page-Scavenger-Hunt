@@ -191,6 +191,25 @@ body{
   opacity:.6;
   margin-bottom:4px;
 }
+/* USERS COUNT */
+.player-count{
+  position:relative;
+  top:16px;
+  right:18px;
+  background:rgba(0,0,0,.6);
+  padding:8px 14px;
+  border-radius:20px;
+  font-size:14px;
+  box-shadow:0 0 12px rgba(0,255,213,.2);
+  z-index:999;
+}
+.player-count{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  width:fit-content;
+}
+
 
 /* ================= ANIMATIONS ================= */
 @keyframes float{
@@ -227,6 +246,10 @@ body{
 
 <!-- MAIN CONTENT -->
 <div id="content" class="hidden">
+  <div class="player-count">
+        👥 NO. of Participants: <span id="playerTotal">0</span>
+  </div>
+      
 
   <div class="hero">
     <h1>Scavenger Hunt</h1>
@@ -271,7 +294,7 @@ body{
   <!-- UPDATES -->
   <section class="section">
     <div class="section-title">📢 Updates</div>
-    <div class="glass updates">
+    <div class="glass updates" id="updatesBox">
       <div class="update">
         <div class="update-time">Just now</div>
         The hunt is live. Stay alert.
@@ -284,6 +307,46 @@ body{
   </section>
 
 </div>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+    
+    const firebaseConfig = {
+      apiKey: "AIzaSyDixe-5RIO9kuU2kjRd20dFfsbgpzmXjl4",
+      authDomain: "scavenger-hunt-11b9f.firebaseapp.com",
+      databaseURL: "https://scavenger-hunt-11b9f-default-rtdb.firebaseio.com",
+      projectId: "scavenger-hunt-11b9f",
+      storageBucket: "scavenger-hunt-11b9f.firebasestorage.app",
+      messagingSenderId: "678881921446",
+      appId: "1:678881921446:web:17378cae12222c5103a767"
+    };
+    
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    
+    /* USERS COUNT */
+    onValue(ref(db,"participants"), snap=>{
+      const el = document.getElementById("playerTotal");
+      if(!el) return;
+      el.textContent = snap.exists() ? Object.keys(snap.val()).length : 0;
+    });
+    
+    /* UPDATES */
+    onValue(ref(db,"updates"), snap=>{
+      const box = document.getElementById("updatesBox");
+      if(!box) return;
+      box.innerHTML = "";
+      snap.forEach(child=>{
+        const d = child.val();
+        box.innerHTML += `
+          <div class="update">
+            <div class="update-time">${d.time || ""}</div>
+            ${d.text || ""}
+          </div>`;
+      });
+    });
+    </script>
+    
 
 <script defer>
 const welcome = document.getElementById("welcome");
