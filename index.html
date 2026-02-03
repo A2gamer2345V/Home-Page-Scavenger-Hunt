@@ -6,64 +6,92 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
+*{box-sizing:border-box}
 body{
   margin:0;
   min-height:100vh;
-  background:#0f2027;
+  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
   font-family:"Segoe UI",Arial,sans-serif;
-  color:white;
-  display:flex;
-  justify-content:center;
-  align-items:center;
+  color:#fff;
+  overflow:hidden;
 }
 
 .hidden{display:none}
 
-.fade{
-  animation:fadeIn .5s ease forwards;
-}
-@keyframes fadeIn{
-  from{opacity:0;transform:translateY(10px)}
-  to{opacity:1;transform:translateY(0)}
-}
-
-.container{
-  max-width:700px;
-  width:90%;
-  text-align:center;
+/* CENTER WRAPPER */
+.center{
+  position:absolute;
+  inset:0;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  flex-direction:column;
+  transition:all .8s ease;
 }
 
+/* WELCOME TITLE */
 h1{
-  font-weight:300;
+  font-weight:400;
+  letter-spacing:.5px;
 }
 h1 span{
-  font-weight:700;
+  font-weight:800;
 }
 
+/* BUTTON */
 button{
-  padding:12px 26px;
-  margin:10px;
+  padding:14px 32px;
   border:none;
-  border-radius:25px;
+  border-radius:30px;
   background:#00c6ff;
   color:#000;
-  font-size:15px;
+  font-size:16px;
   cursor:pointer;
+}
+
+/* SPINNER */
+.spinner{
+  width:40px;
+  height:40px;
+  border:4px solid rgba(255,255,255,.2);
+  border-top:4px solid #00c6ff;
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+  margin-top:20px;
+}
+@keyframes spin{
+  to{transform:rotate(360deg)}
+}
+
+/* AFTER LOGIN LAYOUT */
+.container{
+  max-width:800px;
+  margin:100px auto 40px;
+  text-align:center;
+  opacity:0;
+  transform:translateY(20px);
+  animation:fadeUp .8s ease forwards;
+  animation-delay:.3s;
+}
+@keyframes fadeUp{
+  to{opacity:1;transform:translateY(0)}
 }
 
 .card{
   background:rgba(0,0,0,.55);
-  padding:25px;
+  padding:28px;
   border-radius:18px;
   margin-top:20px;
 }
 
 .tabs button{
+  margin:10px;
   background:transparent;
-  color:#00ffd5;
   border:1px solid #00ffd5;
+  color:#00ffd5;
 }
 
+/* OVERLAY */
 .overlay{
   position:fixed;
   inset:0;
@@ -72,13 +100,11 @@ button{
   justify-content:center;
   align-items:center;
 }
-
 .overlay .card{
   max-width:700px;
 }
-
 .back{
-  margin-top:15px;
+  margin-top:20px;
   background:#ff6b6b;
 }
 </style>
@@ -86,16 +112,16 @@ button{
 
 <body>
 
-<div class="container">
+<!-- PRE LOGIN -->
+<div id="preLogin" class="center">
+  <h1>welcome <span>scavenger hunt</span></h1>
+  <button id="loginBtn">Continue with Google</button>
+  <div id="spinner" class="spinner hidden"></div>
+</div>
 
-  <!-- PRE LOGIN -->
-  <div id="preLogin" class="fade">
-    <h1>welcome <span>scavenger hunt</span></h1>
-    <button id="loginBtn">Continue with Google</button>
-  </div>
-
-  <!-- POST LOGIN -->
-  <div id="postLogin" class="hidden fade">
+<!-- POST LOGIN -->
+<div id="postLogin" class="hidden">
+  <div class="container">
     <h2 id="welcomeUser"></h2>
 
     <div class="card" id="aboutText"></div>
@@ -106,12 +132,11 @@ button{
       <button onclick="openTab('sponsor')">Sponsor</button>
     </div>
   </div>
-
 </div>
 
 <!-- OVERLAY -->
 <div class="overlay" id="overlay">
-  <div class="card fade">
+  <div class="card">
     <div id="overlayContent"></div>
     <button class="back" onclick="closeTab()">Back</button>
   </div>
@@ -119,8 +144,8 @@ button{
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, setPersistence, inMemoryPersistence } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
-import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-database.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
+import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-database";
 
 /* FIREBASE CONFIG */
 const firebaseConfig = {
@@ -136,10 +161,10 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
-await setPersistence(auth, inMemoryPersistence);
 
 const preLogin = document.getElementById("preLogin");
 const postLogin = document.getElementById("postLogin");
+const spinner = document.getElementById("spinner");
 const welcomeUser = document.getElementById("welcomeUser");
 const aboutText = document.getElementById("aboutText");
 const overlay = document.getElementById("overlay");
@@ -148,54 +173,54 @@ const overlayContent = document.getElementById("overlayContent");
 let homepageData = {};
 let updatesData = {};
 
-/* LOGIN */
+/* LOGIN FLOW */
 document.getElementById("loginBtn").onclick = async ()=>{
-  const res = await signInWithPopup(auth,new GoogleAuthProvider());
-  const u = res.user;
+  spinner.classList.remove("hidden");
+  try{
+    const res = await signInWithPopup(auth,new GoogleAuthProvider());
+    const u = res.user;
 
-  // save once per UID (NO DUPLICATES)
-  await set(ref(db,"participants/"+u.uid),{
-    name:u.displayName,
-    email:u.email,
-    lastLogin:new Date().toISOString()
-  });
+    await set(ref(db,"participants/"+u.uid),{
+      name:u.displayName,
+      email:u.email,
+      lastLogin:new Date().toISOString()
+    });
 
-  await loadHomepageData();
+    await loadData();
 
-  preLogin.classList.add("hidden");
-  postLogin.classList.remove("hidden");
-  welcomeUser.innerText = `Welcome, ${u.displayName}`;
+    /* Animate welcome move up */
+    preLogin.style.transform="translateY(-120px)";
+    setTimeout(()=>{
+      preLogin.classList.add("hidden");
+      postLogin.classList.remove("hidden");
+      welcomeUser.innerText=`Welcome, ${u.displayName}`;
+    },600);
+
+  }catch(err){
+    console.error(err);
+    alert("Login failed");
+  }finally{
+    spinner.classList.add("hidden");
+  }
 };
 
-/* LOAD HOMEPAGE CONTENT */
-async function loadHomepageData(){
-  const snap1 = await get(ref(db,"homepage"));
-  const snap2 = await get(ref(db,"updates"));
-
-  homepageData = snap1.exists() ? snap1.val() : {};
-  updatesData = snap2.exists() ? snap2.val() : {};
-
+/* LOAD CONTENT */
+async function loadData(){
+  const h = await get(ref(db,"homepage"));
+  const u = await get(ref(db,"updates"));
+  homepageData = h.exists()?h.val():{};
+  updatesData = u.exists()?u.val():{};
   aboutText.innerText = homepageData.about || "No information available.";
 }
 
 /* TABS */
 window.openTab = (type)=>{
   overlay.style.display="flex";
-
-  if(type==="updates"){
-    overlayContent.innerText = updatesData.content || "No updates yet.";
-  }
-  if(type==="rules"){
-    overlayContent.innerText = homepageData.rules || "No rules available.";
-  }
-  if(type==="sponsor"){
-    overlayContent.innerText = homepageData.sponsor || "No sponsor information.";
-  }
+  if(type==="updates") overlayContent.innerText = updatesData.content || "No updates yet.";
+  if(type==="rules") overlayContent.innerText = homepageData.rules || "No rules available.";
+  if(type==="sponsor") overlayContent.innerText = homepageData.sponsor || "No sponsor info.";
 };
-
-window.closeTab = ()=>{
-  overlay.style.display="none";
-};
+window.closeTab = ()=>overlay.style.display="none";
 </script>
 
 </body>
