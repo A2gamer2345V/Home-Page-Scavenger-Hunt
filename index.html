@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Scavenger Hunt</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+  margin:0;
+  min-height:100vh;
+  background:#0f2027;
+  font-family:"Segoe UI",Arial,sans-serif;
+  color:white;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+.hidden{display:none}
+
+.fade{
+  animation:fadeIn .5s ease forwards;
+}
+@keyframes fadeIn{
+  from{opacity:0;transform:translateY(10px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+.container{
+  max-width:700px;
+  width:90%;
+  text-align:center;
+}
+
+h1{
+  font-weight:300;
+}
+h1 span{
+  font-weight:700;
+}
+
+button{
+  padding:12px 26px;
+  margin:10px;
+  border:none;
+  border-radius:25px;
+  background:#00c6ff;
+  color:#000;
+  font-size:15px;
+  cursor:pointer;
+}
+
+.card{
+  background:rgba(0,0,0,.55);
+  padding:25px;
+  border-radius:18px;
+  margin-top:20px;
+}
+
+.tabs button{
+  background:transparent;
+  color:#00ffd5;
+  border:1px solid #00ffd5;
+}
+
+.overlay{
+  position:fixed;
+  inset:0;
+  background:#0f2027;
+  display:none;
+  justify-content:center;
+  align-items:center;
+}
+
+.overlay .card{
+  max-width:700px;
+}
+
+.back{
+  margin-top:15px;
+  background:#ff6b6b;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <!-- PRE LOGIN -->
+  <div id="preLogin" class="fade">
+    <h1>welcome <span>scavenger hunt</span></h1>
+    <button id="loginBtn">Continue with Google</button>
+  </div>
+
+  <!-- POST LOGIN -->
+  <div id="postLogin" class="hidden fade">
+    <h2 id="welcomeUser"></h2>
+
+    <div class="card" id="aboutText"></div>
+
+    <div class="tabs">
+      <button onclick="openTab('updates')">Updates</button>
+      <button onclick="openTab('rules')">Rules</button>
+      <button onclick="openTab('sponsor')">Sponsor</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- OVERLAY -->
+<div class="overlay" id="overlay">
+  <div class="card fade">
+    <div id="overlayContent"></div>
+    <button class="back" onclick="closeTab()">Back</button>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, setPersistence, inMemoryPersistence } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
+import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-database.js";
+
+/* FIREBASE CONFIG */
+const firebaseConfig = {
+  apiKey: "AIzaSyDixe-5RIO9kuU2kjRd20dFfsbgpzmXjl4",
+  authDomain: "scavenger-hunt-11b9f.firebaseapp.com",
+  databaseURL: "https://scavenger-hunt-11b9f-default-rtdb.firebaseio.com",
+  projectId: "scavenger-hunt-11b9f",
+  storageBucket: "scavenger-hunt-11b9f.firebasestorage.app",
+  messagingSenderId: "678881921446",
+  appId: "1:678881921446:web:17378cae12222c5103a767"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
+await setPersistence(auth, inMemoryPersistence);
+
+const preLogin = document.getElementById("preLogin");
+const postLogin = document.getElementById("postLogin");
+const welcomeUser = document.getElementById("welcomeUser");
+const aboutText = document.getElementById("aboutText");
+const overlay = document.getElementById("overlay");
+const overlayContent = document.getElementById("overlayContent");
+
+let homepageData = {};
+let updatesData = {};
+
+/* LOGIN */
+document.getElementById("loginBtn").onclick = async ()=>{
+  const res = await signInWithPopup(auth,new GoogleAuthProvider());
+  const u = res.user;
+
+  // save once per UID (NO DUPLICATES)
+  await set(ref(db,"participants/"+u.uid),{
+    name:u.displayName,
+    email:u.email,
+    lastLogin:new Date().toISOString()
+  });
+
+  await loadHomepageData();
+
+  preLogin.classList.add("hidden");
+  postLogin.classList.remove("hidden");
+  welcomeUser.innerText = `Welcome, ${u.displayName}`;
+};
+
+/* LOAD HOMEPAGE CONTENT */
+async function loadHomepageData(){
+  const snap1 = await get(ref(db,"homepage"));
+  const snap2 = await get(ref(db,"updates"));
+
+  homepageData = snap1.exists() ? snap1.val() : {};
+  updatesData = snap2.exists() ? snap2.val() : {};
+
+  aboutText.innerText = homepageData.about || "No information available.";
+}
+
+/* TABS */
+window.openTab = (type)=>{
+  overlay.style.display="flex";
+
+  if(type==="updates"){
+    overlayContent.innerText = updatesData.content || "No updates yet.";
+  }
+  if(type==="rules"){
+    overlayContent.innerText = homepageData.rules || "No rules available.";
+  }
+  if(type==="sponsor"){
+    overlayContent.innerText = homepageData.sponsor || "No sponsor information.";
+  }
+};
+
+window.closeTab = ()=>{
+  overlay.style.display="none";
+};
+</script>
+
+</body>
+</html>
