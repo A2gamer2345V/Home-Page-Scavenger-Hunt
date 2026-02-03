@@ -1,83 +1,89 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Homepage Test</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>Scavenger Hunt</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    body{
-      margin:0;
-      height:100vh;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      background:#111;
-      color:#fff;
-      font-family:Arial, sans-serif;
-      text-align:center;
-    }
-    button{
-      padding:14px 30px;
-      font-size:16px;
-      border:none;
-      border-radius:25px;
-      cursor:pointer;
-    }
-  </style>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:radial-gradient(circle at top,#203a43,#0f2027 60%);
+  font-family:'Inter',sans-serif;
+  color:#fff;
+  overflow:hidden;
+}
+
+/* CENTER WRAPPER */
+.wrapper{
+  text-align:center;
+  padding:20px;
+  animation:fadeScale 1.2s ease forwards;
+}
+
+/* TITLE */
+h1{
+  font-size:clamp(32px,6vw,52px);
+  font-weight:400;
+  letter-spacing:0.5px;
+  margin:0;
+}
+h1 span{
+  font-weight:800;
+}
+
+/* SUBTEXT */
+p{
+  margin-top:14px;
+  font-size:clamp(14px,2.5vw,18px);
+  opacity:0.85;
+}
+
+/* KEY ICON */
+.key{
+  font-size:clamp(36px,7vw,56px);
+  margin-bottom:18px;
+  animation:float 3s ease-in-out infinite;
+}
+
+/* ANIMATIONS */
+@keyframes fadeScale{
+  from{
+    opacity:0;
+    transform:scale(0.92);
+  }
+  to{
+    opacity:1;
+    transform:scale(1);
+  }
+}
+
+@keyframes float{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-10px)}
+}
+
+/* RESPONSIVE SAFE AREA */
+@media (max-height:500px){
+  .key{display:none}
+}
+</style>
 </head>
 
 <body>
 
-<div id="loggedOut">
-  <h2>Homepage Test</h2>
-  <button id="loginBtn">Login with Google</button>
+<div class="wrapper">
+  <div class="key">🗝️</div>
+  <h1>welcome <span>scavenger hunt</span></h1>
+  <p>Think. Search. Decode. The hunt begins soon.</p>
 </div>
-
-<div id="loggedIn" style="display:none">
-  <h2 id="userText"></h2>
-  <p>Firebase write completed.</p>
-</div>
-
-<!-- Firebase SDKs -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
-<script>
-firebase.initializeApp({
-  apiKey: "AIzaSyDixe-5RIO9kuU2kjRd20dFfsbgpzmXjl4",
-  authDomain: "scavenger-hunt-11b9f.firebaseapp.com",
-  databaseURL: "https://scavenger-hunt-11b9f-default-rtdb.firebaseio.com",
-  projectId: "scavenger-hunt-11b9f"
-});
-
-const auth = firebase.auth();
-const db = firebase.database();
-const provider = new firebase.auth.GoogleAuthProvider();
-
-document.getElementById("loginBtn").onclick = () => {
-  auth.signInWithRedirect(provider);
-};
-
-/* AUTH STATE LISTENER */
-auth.onAuthStateChanged(async (user)=>{
-  if(!user) return;
-
-  // WRITE USER DATA
-  await db.ref("participants/" + user.uid).set({
-    name: user.displayName,
-    email: user.email,
-    lastLogin: new Date().toISOString()
-  });
-
-  // UPDATE UI
-  document.getElementById("loggedOut").style.display="none";
-  document.getElementById("loggedIn").style.display="block";
-  document.getElementById("userText").innerText =
-    "Logged in as " + user.displayName;
-});
-</script>
 
 </body>
 </html>
