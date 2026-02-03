@@ -5,135 +5,54 @@
 <title>Scavenger Hunt</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- GOOGLE FONT -->
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
 
 <style>
-*{box-sizing:border-box}
 body{
   margin:0;
   height:100vh;
-  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-  font-family:'Poppins',sans-serif;
-  color:#fff;
-  overflow:hidden;
-}
-
-.hidden{display:none}
-
-.center{
-  position:absolute;
-  inset:0;
   display:flex;
   flex-direction:column;
   justify-content:center;
   align-items:center;
-  transition:transform .8s ease, opacity .8s ease;
+  background:linear-gradient(135deg,#0f2027,#203a43);
+  font-family:'Inter',sans-serif;
+  color:#fff;
 }
 
 h1{
+  font-size:36px;
   font-weight:400;
-  letter-spacing:.5px;
 }
+
 h1 span{
-  font-weight:800;
+  font-weight:700;
 }
 
 button{
-  margin-top:20px;
-  padding:14px 34px;
+  margin-top:30px;
+  padding:14px 36px;
+  font-size:16px;
   border:none;
   border-radius:30px;
   background:#00c6ff;
   color:#000;
-  font-size:16px;
   cursor:pointer;
-}
-
-.spinner{
-  margin-top:20px;
-  width:36px;
-  height:36px;
-  border:4px solid rgba(255,255,255,.3);
-  border-top:4px solid #00c6ff;
-  border-radius:50%;
-  animation:spin 1s linear infinite;
-}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-.container{
-  max-width:800px;
-  margin:100px auto;
-  text-align:center;
-  opacity:0;
-  transform:translateY(20px);
-  animation:fadeUp .8s forwards;
-}
-@keyframes fadeUp{to{opacity:1;transform:none}}
-
-.card{
-  background:rgba(0,0,0,.55);
-  padding:26px;
-  border-radius:18px;
-  margin-top:20px;
-}
-
-.tabs button{
-  background:transparent;
-  border:1px solid #00ffd5;
-  color:#00ffd5;
-  margin:8px;
-}
-
-.overlay{
-  position:fixed;
-  inset:0;
-  background:#0f2027;
-  display:none;
-  justify-content:center;
-  align-items:center;
-}
-.back{
-  margin-top:20px;
-  background:#ff6b6b;
 }
 </style>
 </head>
 
 <body>
 
-<div id="preLogin" class="center">
-  <h1>welcome <span>scavenger hunt</span></h1>
-  <button id="loginBtn">Continue with Google</button>
-  <div id="spinner" class="spinner hidden"></div>
-</div>
+<h1>welcome <span>scavenger hunt</span></h1>
+<button id="loginBtn">Continue with Google</button>
 
-<div id="postLogin" class="hidden">
-  <div class="container">
-    <h2 id="welcomeUser"></h2>
-    <div id="aboutText" class="card"></div>
-    <div class="tabs">
-      <button id="updatesBtn">Updates</button>
-      <button id="rulesBtn">Rules</button>
-      <button id="sponsorBtn">Sponsor</button>
-    </div>
-  </div>
-</div>
-
-<div id="overlay" class="overlay">
-  <div class="card">
-    <div id="overlayContent"></div>
-    <button class="back" id="backBtn">Back</button>
-  </div>
-</div>
-
-<!-- FIREBASE SDKs (NON-MODULE, STABLE) -->
+<!-- Firebase (COMPAT, STABLE) -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
-/* FIREBASE CONFIG */
 firebase.initializeApp({
   apiKey: "AIzaSyDixe-5RIO9kuU2kjRd20dFfsbgpzmXjl4",
   authDomain: "scavenger-hunt-11b9f.firebaseapp.com",
@@ -143,65 +62,34 @@ firebase.initializeApp({
 
 const auth = firebase.auth();
 const db = firebase.database();
+const provider = new firebase.auth.GoogleAuthProvider();
 
-const preLogin = document.getElementById("preLogin");
-const postLogin = document.getElementById("postLogin");
-const spinner = document.getElementById("spinner");
-const welcomeUser = document.getElementById("welcomeUser");
-const aboutText = document.getElementById("aboutText");
-const overlay = document.getElementById("overlay");
-const overlayContent = document.getElementById("overlayContent");
+document.getElementById("loginBtn").onclick = () => {
+  firebase.auth().signInWithRedirect(provider);
+};
 
-let homepageData = {};
-let updatesData = {};
-
-document.getElementById("loginBtn").addEventListener("click", async ()=>{
-  spinner.classList.remove("hidden");
-  try{
-    const res = await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
-    const u = res.user;
-
-    await db.ref("participants/"+u.uid).set({
+/* HANDLE REDIRECT RESULT */
+firebase.auth().getRedirectResult()
+.then(result=>{
+  if(result.user){
+    const u = result.user;
+    return db.ref("participants/"+u.uid).set({
       name:u.displayName,
       email:u.email,
       lastLogin:new Date().toISOString()
     });
-
-    const h = await db.ref("homepage").get();
-    const up = await db.ref("updates").get();
-    homepageData = h.exists()?h.val():{};
-    updatesData = up.exists()?up.val():{};
-
-    aboutText.innerText = homepageData.about || "No information available.";
-
-    preLogin.style.transform="translateY(-120px)";
-    setTimeout(()=>{
-      preLogin.classList.add("hidden");
-      postLogin.classList.remove("hidden");
-      welcomeUser.innerText="Welcome, "+u.displayName;
-    },600);
-
-  }catch(e){
-    alert("Login failed");
-    console.error(e);
-  }finally{
-    spinner.classList.add("hidden");
   }
+})
+.then(()=>{
+  // SUCCESS (for now just alert so you KNOW it worked)
+  // next step we’ll replace this with UI transition
+  // DO NOT REMOVE YET
+  alert("Login successful");
+})
+.catch(err=>{
+  console.error(err);
+  alert("Login failed");
 });
-
-document.getElementById("updatesBtn").onclick=()=>{
-  overlay.style.display="flex";
-  overlayContent.innerText=updatesData.content||"No updates yet.";
-};
-document.getElementById("rulesBtn").onclick=()=>{
-  overlay.style.display="flex";
-  overlayContent.innerText=homepageData.rules||"No rules.";
-};
-document.getElementById("sponsorBtn").onclick=()=>{
-  overlay.style.display="flex";
-  overlayContent.innerText=homepageData.sponsor||"No sponsor info.";
-};
-document.getElementById("backBtn").onclick=()=>overlay.style.display="none";
 </script>
 
 </body>
