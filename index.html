@@ -15,6 +15,10 @@ body{
   font-family:'Inter',sans-serif;
   color:#fff;
 }
+body.locked {
+  height: 100vh;
+  overflow: hidden;
+}
 
 /* COMMON */
 .screen{
@@ -72,6 +76,23 @@ body{
     font-size:18px;
     margin-top:18px;
   }
+}
+
+/* LOGIN BUTTON (NEW UI ALLOWED) */
+#loginBtn{
+  margin-top:28px;
+  padding:14px 26px;
+  border-radius:999px;
+  border:none;
+  background:#00ffd5;
+  color:#000;
+  font-weight:700;
+  font-size:16px;
+  cursor:pointer;
+}
+#loginBtn:disabled{
+  opacity:.6;
+  cursor:not-allowed;
 }
 
 /* ================= TERMINAL ================= */
@@ -236,6 +257,7 @@ body{
     <div class="subtitle">
       Think. Search. Decode. The hunt begins soon.
     </div>
+    <button id="loginBtn">Continue with Google</button>
   </div>
 </div>
 
@@ -247,9 +269,9 @@ body{
 <!-- MAIN CONTENT -->
 <div id="content" class="hidden">
   <div class="player-count">
-        👥 NO. of Participants: <span id="playerTotal">0</span>
+        👥 NO. of Players: <span id="playerTotal">0</span>
   </div>
-      
+     
 
   <div class="hero">
     <h1>Scavenger Hunt</h1>
@@ -308,9 +330,70 @@ body{
 
 </div>
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-    
+
+    import { initializeApp }
+from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+
+import { getDatabase, ref, onValue, get, update }
+from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut }
+from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+  document.body.classList.add("locked");
+
+//login
+loginBtn.onclick = async () => {
+  loginBtn.disabled = true;
+
+  let user;
+
+  try {
+    // ✅ AUTH ONLY
+    const result = await signInWithPopup(auth, provider);
+    user = result.user;
+
+    if (!user) {
+      throw new Error("User object missing");
+    }
+
+  } catch (authError) {
+    console.error("Auth error:", authError);
+    alert("Login failed ❌");
+    loginBtn.disabled = false;
+    return; // ⛔ STOP EVERYTHING
+  }
+
+  // ⬇️ FROM HERE: LOGIN IS CONFIRMED SUCCESSFUL ⬇️
+
+  try {
+    const userRef = ref(db, "participants/" + user.uid);
+    const snap = await get(userRef);
+
+    if (snap.exists() && snap.val().blocked === true) {
+      alert("You are blocked from this event.");
+      await signOut(auth);
+      loginBtn.disabled = false;
+      return; // ⛔ STOP
+    }
+
+    await update(userRef, {
+      name: user.displayName,
+      email: user.email,
+      lastLogin: Date.now()
+    });
+    // 🎬 UI FLOW ONLY AFTER EVERYTHING IS OK
+    startCinematicFlow();
+
+  } catch (dbError) {
+    console.error("Post-login error:", dbError);
+    alert("Something went wrong after login ❌");
+    loginBtn.disabled = false;
+    return; // ⛔ STOP
+  }
+};
+
+
     const firebaseConfig = {
       apiKey: "AIzaSyDixe-5RIO9kuU2kjRd20dFfsbgpzmXjl4",
       authDomain: "scavenger-hunt-11b9f.firebaseapp.com",
@@ -320,17 +403,19 @@ body{
       messagingSenderId: "678881921446",
       appId: "1:678881921446:web:17378cae12222c5103a767"
     };
-    
+   
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-    
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+
     /* USERS COUNT */
     onValue(ref(db,"participants"), snap=>{
       const el = document.getElementById("playerTotal");
       if(!el) return;
       el.textContent = snap.exists() ? Object.keys(snap.val()).length : 0;
     });
-    
+   
     /* UPDATES */
     onValue(ref(db,"updates"), snap=>{
       const box = document.getElementById("updatesBox");
@@ -346,9 +431,8 @@ body{
       });
     });
     </script>
-    
-
 <script defer>
+const loginBtn = document.getElementById("loginBtn");
 const welcome = document.getElementById("welcome");
 const decrypting = document.getElementById("decrypting");
 const terminal = document.getElementById("terminal");
@@ -361,40 +445,50 @@ const lines = [
   "Connection established.✅"
 ];
 
-let index = 0;
+function startCinematicFlow() {
+  welcome.classList.add("hidden");
+  decrypting.classList.remove("hidden");
+  terminal.innerHTML = "";
 
-function typeLine(){
-  if(index >= lines.length) return;
-  const line = document.createElement("div");
-  line.className = "line";
-  terminal.appendChild(line);
-  let char = 0;
-  function typeChar(){
-    if(char < lines[index].length){
-      line.textContent += lines[index][char++];
-      terminal.scrollTop = terminal.scrollHeight;
-      setTimeout(typeChar, 35);
-    }else{
-      line.innerHTML += "<span class='cursor'></span>";
-      index++;
-      setTimeout(typeLine, 500);
+  let index = 0;
+
+  function typeLine() {
+    if (index >= lines.length) {
+      setTimeout(() => {
+        decrypting.classList.add("hidden");
+        content.classList.remove("hidden");
+      }, 0);
+      document.body.classList.remove("locked");
+      return;
     }
+
+    const line = document.createElement("div");
+    line.className = "line";
+    terminal.appendChild(line);
+
+    let char = 0;
+
+    function typeChar() {
+      if (char < lines[index].length) {
+        line.textContent += lines[index][char++];
+        terminal.scrollTop = terminal.scrollHeight;
+        setTimeout(typeChar, 35);
+      } else {
+        index++;
+        setTimeout(typeLine, 500);
+      }
+    }
+
+    typeChar(); // ✅ CALLED WHERE IT EXISTS
   }
-  typeChar();
+
+  typeLine(); // ✅ STARTS THE FLOW
 }
 
 /* FLOW */
 setTimeout(()=>{
-  welcome.classList.add("hidden");
-  decrypting.classList.remove("hidden");
-  typeLine();
-},3000);
-
-setTimeout(()=>{
   decrypting.classList.add("hidden");
   content.classList.remove("hidden");
-},9000);
+},60000);
 </script>
-
-</body>
 </html>
