@@ -132,7 +132,6 @@ body.locked {
 .hero h1{
   font-size:clamp(36px,7vw,60px);
   font-weight:800;
-  white-space:nowrap;
 }
 
 .section{
@@ -270,11 +269,13 @@ body.locked {
 <div id="content" class="hidden">
   <div class="player-count">
         👥 NO. of Players: <span id="playerTotal">0</span>
+        👤 Player: <span id="playerName">Guest</span>
   </div>
      
 
   <div class="hero">
-    <h1>Scavenger Hunt</h1>
+    <h1>Welcome To Scavenger Hunt</h1>
+    <h3>Hosted by A2gamer</h3>
   </div>
 
   <!-- PRIZES -->
@@ -339,6 +340,10 @@ from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut }
 from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+import { onAuthStateChanged } 
+from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
 
   document.body.classList.add("locked");
 
@@ -415,7 +420,19 @@ loginBtn.onclick = async () => {
       if(!el) return;
       el.textContent = snap.exists() ? Object.keys(snap.val()).length : 0;
     });
-   
+   /*PLayer Name*/
+    onAuthStateChanged(auth, async (user) => {
+  if (!user) return;
+
+  const nameEl = document.getElementById("playerName");
+  if (!nameEl) return;
+
+  const snap = await get(ref(db, "participants/" + user.uid));
+  if (snap.exists()) {
+    nameEl.textContent = snap.val().name;
+  }
+});
+
     /* UPDATES */
     onValue(ref(db,"updates"), snap=>{
       const box = document.getElementById("updatesBox");
@@ -430,6 +447,8 @@ loginBtn.onclick = async () => {
           </div>`;
       });
     });
+
+    
     </script>
 <script defer>
 const loginBtn = document.getElementById("loginBtn");
