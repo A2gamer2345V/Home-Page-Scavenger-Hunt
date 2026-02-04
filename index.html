@@ -415,11 +415,14 @@ loginBtn.onclick = async () => {
     const provider = new GoogleAuthProvider();
 
     /* USERS COUNT */
-    onValue(ref(db,"participants"), snap=>{
-      const el = document.getElementById("playerTotal");
-      if(!el) return;
-      el.textContent = snap.exists() ? Object.keys(snap.val()).length : 0;
-    });
+  onValue(ref(db,"participants"), snap => {
+  const el = document.getElementById("playerTotal");
+  if(!el) return;
+
+  // Count all participants
+  el.textContent = snap.exists() ? Object.keys(snap.val()).length : 0;
+});
+
    /*PLayer Name*/
     onAuthStateChanged(auth, async (user) => {
   if (!user) return;
